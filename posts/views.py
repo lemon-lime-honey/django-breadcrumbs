@@ -21,5 +21,17 @@ class PostViewSet(viewsets.ModelViewSet):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(instance=post)
         data = serializer.data
-        data['breadcrumbs'] = ['Post', serializer.data['category'], serializer.data['title']]
+
+        data['subpages'] = list()
+        sub = post.post_set.all()
+        for page in sub:
+            data['subpages'].append(page.title)
+
+        data['breadcrumbs'] = list()
+        while post.parent:
+            parent = self.queryset.get(pk=post.parent.pk)
+            data['breadcrumbs'].append(parent.title)
+            post = parent
+        data['breadcrumbs'] = data['breadcrumbs'][::-1]
+
         return Response(data=data)
